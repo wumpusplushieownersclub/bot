@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -111,5 +113,19 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			os.Exit(9)
 		}
 
+		if strings.ToLower(m.Content) == "wump count" {
+			guildJson, err := s.RequestWithBucketID("GET", discordgo.EndpointGuild(m.GuildID)+"?with_counts=true", nil, discordgo.EndpointGuild(m.GuildID))
+            guildDiscord := &discordgo.Guild{}
+
+            if err == nil {
+				_ = json.Unmarshal(guildJson, guildDiscord)
+			}
+
+			s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
+				Type:        "rich",
+				Color:       7506394,
+				Description: "**" + fmt.Sprint(guildDiscord.ApproximateMemberCount) + "** Wumpus Plushie owners currently reside in this server",
+			})
+		}
 	}
 }
