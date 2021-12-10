@@ -15,17 +15,21 @@ var PICS_CHANNEL_ID = getenv("PICS_CHANNEL", "918355152493215764")
 var VERIFICATION_CHANNEL_ID = getenv("VERIFICATION_CHANNEL", "918932836428419163")
 
 var TEAM_ROLE_ID = getenv("TEAM_ROLE", "918354701337116703")
+var OWNER_ROLE_ID = getenv("OWNER_ROLE", "918355466894065685")
+
+var VALID_REACTIONS = []string{"👍", "👎"}
 
 func main() {
 	session, err := discordgo.New("Bot " + os.Getenv("DISCORD_TOKEN"))
 
-	session.Identify.Intents = discordgo.IntentsGuildMessages | discordgo.IntentsGuildMembers
+	session.Identify.Intents = discordgo.IntentsGuildMessages | discordgo.IntentsGuildMembers | discordgo.IntentsGuildMessageReactions
 
 	if err != nil {
 		panic(err)
 	}
 
 	session.AddHandler(messageCreate)
+	session.AddHandler(messageReactionAdd)
 	session.AddHandler(guildMemberAdd)
 
 	session.Open()

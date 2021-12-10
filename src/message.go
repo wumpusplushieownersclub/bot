@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -8,6 +9,44 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 )
+
+func messageReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
+	if r.MessageReaction.UserID == s.State.User.ID || r.ChannelID != VERIFICATION_CHANNEL_ID {
+		return
+	}
+
+	member, _ := s.GuildMember(r.GuildID, r.MessageReaction.UserID)
+
+	if contains(member.Roles, TEAM_ROLE_ID) && contains(VALID_REACTIONS, r.Emoji.Name) {
+		fmt.Println("Reaction added", r.Emoji.Name)
+
+		reactedMessage, _ := s.ChannelMessage(r.ChannelID, r.MessageID)
+		channelMessages, _ := s.ChannelMessages(r.ChannelID, 100, r.MessageID, "", "")
+		var originalMessage *discordgo.Message
+
+		for _, v := range channelMessages {
+			if v.Author.ID == s.State.User.ID {
+				for _, m := range v.Mentions {
+					if m.ID == reactedMessage.Author.ID {
+						originalMessage = v
+					}
+				}
+			}
+		}
+
+		if r.Emoji.Name == "👍" {
+			s.ChannelMessageDelete(r.ChannelID, reactedMessage.ID)
+			s.ChannelMessageDelete(r.ChannelID, originalMessage.ID)
+			s.GuildMemberRoleAdd(r.GuildID, reactedMessage.Author.ID, OWNER_ROLE_ID)
+		} else if r.Emoji.Name == "👎" {
+			s.ChannelMessageDelete(r.ChannelID, reactedMessage.ID)
+			s.ChannelMessageDelete(r.ChannelID, originalMessage.ID)
+			s.GuildMemberDelete(r.GuildID, reactedMessage.Author.ID)
+		}
+	} else {
+		s.MessageReactionRemove(r.ChannelID, r.MessageID, r.Emoji.APIName(), r.MessageReaction.UserID)
+	}
+}
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID {
