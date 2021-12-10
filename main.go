@@ -13,14 +13,21 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
+// Create environment variables locally for base development
+
 var CDN_CHANNEL_ID = getenv("CDN_CHANNEL", "918725182330400788")
 var PICS_CHANNEL_ID = getenv("PICS_CHANNEL", "918355152493215764")
 var TEAM_ROLE_ID = getenv("TEAM_ROLE", "918354701337116703")
 
 func main() {
+
+	// Create a new Discord session using the provided bot token.
+
 	session, err := discordgo.New("Bot " + os.Getenv("DISCORD_TOKEN"))
 
 	session.Identify.Intents = discordgo.IntentsGuildMessages
+
+	// If there is an error, print it and return.
 
 	if err != nil {
 		panic(err)
@@ -28,10 +35,12 @@ func main() {
 
 	session.AddHandler(messageCreate)
 
+	// Connect to the Discord API with the token provided -- Session.Open();
+
 	session.Open()
 
-	/* Log when the bot is online */
-	fmt.Println("Bot is online :D")
+	/* When bot starts up -- Log to the console */
+	fmt.Println("🚀 Bot has launched")
 
 	session.UpdateGameStatus(0, "big wumpus")
 
@@ -39,14 +48,16 @@ func main() {
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, syscall.SIGTERM)
 	<-sc
 
-	/* lol when crash */
-	fmt.Println("uh oh D:")
+	/* When crash -> Print Error */
+	fmt.Println("🛑 Uh oh! It appears that an error has occured.")
 
 	session.Close()
 }
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	// Ignore ourselves
+	
+	// If the user is the bot, return the function.
+
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
@@ -63,6 +74,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			cdnMessage, _ := s.ChannelFileSend(CDN_CHANNEL_ID, image.Filename, request.Body)
 
 			s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
+
+				// If image is provided, embed it
+
 				Type:        "rich",
 				Color:       2617723,
 				Image:       &discordgo.MessageEmbedImage{URL: cdnMessage.Attachments[0].URL},
@@ -71,6 +85,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			})
 			s.ChannelMessageDelete(m.ChannelID, m.ID)
 		} else {
+
+			// If it isn't return the statement with an Embed.
+
 			s.ChannelMessageDelete(m.ChannelID, m.ID)
 			message, _ := s.ChannelMessageSend(m.ChannelID, "Please include an image!")
 			time.AfterFunc(5*time.Second, func() { s.ChannelMessageDelete(m.ChannelID, message.ID) })
