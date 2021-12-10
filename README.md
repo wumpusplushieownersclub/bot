@@ -9,6 +9,7 @@ Configurable env variables (Value here is the default)
 ```env
 CDN_CHANNEL="918725182330400788"
 PICS_CHANNEL="918355152493215764"
+TEAM_ROLE="918354200482709505"
 ```
 
 ## Starting the bot

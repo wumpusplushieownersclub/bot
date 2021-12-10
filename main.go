@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 
 var CDN_CHANNEL_ID = getenv("CDN_CHANNEL", "918725182330400788")
 var PICS_CHANNEL_ID = getenv("PICS_CHANNEL", "918355152493215764")
+var TEAM_ROLE_ID = getenv("TEAM_ROLE", "918354701337116703")
 
 func main() {
 	session, err := discordgo.New("Bot " + os.Getenv("DISCORD_TOKEN"))
@@ -62,6 +64,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 			s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
 				Type:        "rich",
+				Color:       2617723,
 				Image:       &discordgo.MessageEmbedImage{URL: cdnMessage.Attachments[0].URL},
 				Author:      &discordgo.MessageEmbedAuthor{IconURL: m.Author.AvatarURL(""), Name: m.Author.Username},
 				Description: m.Content,
@@ -73,12 +76,18 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			time.AfterFunc(5*time.Second, func() { s.ChannelMessageDelete(m.ChannelID, message.ID) })
 		}
 	} else {
-		if m.Content == "ping" {
+		if strings.ToLower(m.Content) == "ping" {
 			s.ChannelMessageSend(m.ChannelID, "pong")
 		}
 
-		if m.Content == "wump" {
+		if strings.ToLower(m.Content) == "wump" {
 			s.ChannelMessageSend(m.ChannelID, "<:wumpWave:918629841836859412>")
+		}
+
+		if strings.ToLower(m.Content) == "nap" && contains(m.Member.Roles, TEAM_ROLE_ID) {
+			s.ChannelMessageSend(m.ChannelID, "<:wumpSad:918629842050748437> going down for nap time")
+			s.Close()
+			os.Exit(9)
 		}
 	}
 }
