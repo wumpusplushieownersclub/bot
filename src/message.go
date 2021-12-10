@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -18,8 +17,6 @@ func messageReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	member, _ := s.GuildMember(r.GuildID, r.MessageReaction.UserID)
 
 	if contains(member.Roles, TEAM_ROLE_ID) && contains(VALID_REACTIONS, r.Emoji.Name) {
-		fmt.Println("Reaction added", r.Emoji.Name)
-
 		reactedMessage, _ := s.ChannelMessage(r.ChannelID, r.MessageID)
 		channelMessages, _ := s.ChannelMessages(r.ChannelID, 100, r.MessageID, "", "")
 		var originalMessage *discordgo.Message
