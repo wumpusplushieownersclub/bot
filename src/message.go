@@ -70,7 +70,10 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.ChannelID == PICS_CHANNEL_ID {
 		if len(m.Attachments) > 0 && m.Attachments[0].Height != 0 && m.Attachments[0].Width != 0 {
 			image := m.Attachments[0]
-			request, _ := http.Get(image.URL)
+			httpClient := &http.Client{
+				Timeout: 10 * time.Second,
+			}
+			request, _ := httpClient.Get(image.URL)
 
 			cdnMessage, _ := s.ChannelFileSend(CDN_CHANNEL_ID, image.Filename, request.Body)
 
