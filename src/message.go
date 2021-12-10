@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -31,31 +32,31 @@ func messageReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 			}
 		}
 
+		s.ChannelMessageDelete(r.ChannelID, reactedMessage.ID)
+		s.ChannelMessageDelete(r.ChannelID, originalMessage.ID)
+
+		var status string
+		var color int
+
 		if r.Emoji.Name == "👍" {
-			s.ChannelMessageDelete(r.ChannelID, reactedMessage.ID)
-			s.ChannelMessageDelete(r.ChannelID, originalMessage.ID)
+			status = "verified"
+			color = 0x00FF00
 			s.GuildMemberRoleAdd(r.GuildID, reactedMessage.Author.ID, OWNER_ROLE_ID)
-
-			s.ChannelMessageSendEmbed(LOGS_CHANNEL_ID, &discordgo.MessageEmbed{
-				Type:      "rich",
-				Color:     0x00FF00,
-				Title:     reactedMessage.Author.Username + "#" + reactedMessage.Author.Discriminator + " was verified by " + member.User.Username,
-				Footer:    &discordgo.MessageEmbedFooter{Text: "Wumpus Verification"},
-				Timestamp: time.Now().Format(time.RFC3339),
-			})
 		} else if r.Emoji.Name == "👎" {
-			s.ChannelMessageDelete(r.ChannelID, reactedMessage.ID)
-			s.ChannelMessageDelete(r.ChannelID, originalMessage.ID)
+			status = "denied"
+			color = 0xFF0000
 			s.GuildMemberDelete(r.GuildID, reactedMessage.Author.ID)
-
-			s.ChannelMessageSendEmbed(LOGS_CHANNEL_ID, &discordgo.MessageEmbed{
-				Type:      "rich",
-				Color:     0xFF0000,
-				Title:     reactedMessage.Author.Username + "#" + reactedMessage.Author.Discriminator + " was denied by " + member.User.Username,
-				Footer:    &discordgo.MessageEmbedFooter{Text: "Wumpus Verification"},
-				Timestamp: time.Now().Format(time.RFC3339),
-			})
 		}
+
+		message := fmt.Sprintf("%s#%s was %s by %s", reactedMessage.Author.Username, reactedMessage.Author.Discriminator, status, member.User.Username)
+
+		s.ChannelMessageSendEmbed(LOGS_CHANNEL_ID, &discordgo.MessageEmbed{
+			Type:      "rich",
+			Color:     color,
+			Title:     message,
+			Footer:    &discordgo.MessageEmbedFooter{Text: "Wumpus Verification"},
+			Timestamp: time.Now().Format(time.RFC3339),
+		})
 	} else {
 		s.MessageReactionRemove(r.ChannelID, r.MessageID, r.Emoji.APIName(), r.MessageReaction.UserID)
 	}
