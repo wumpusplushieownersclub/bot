@@ -31,6 +31,8 @@ func main() {
 	/* Log when the bot is online */
 	fmt.Println("Bot is online :D")
 
+	session.UpdateGameStatus(0, "big wumpus")
+
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, syscall.SIGTERM)
 	<-sc
@@ -42,6 +44,7 @@ func main() {
 }
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+	// Ignore ourselves
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
