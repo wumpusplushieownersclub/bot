@@ -14,21 +14,17 @@ import (
 )
 
 // Create environment variables locally for base development
-
 var CDN_CHANNEL_ID = getenv("CDN_CHANNEL", "918725182330400788")
 var PICS_CHANNEL_ID = getenv("PICS_CHANNEL", "918355152493215764")
 var TEAM_ROLE_ID = getenv("TEAM_ROLE", "918354701337116703")
 
 func main() {
-
 	// Create a new Discord session using the provided bot token.
-
 	session, err := discordgo.New("Bot " + os.Getenv("DISCORD_TOKEN"))
 
 	session.Identify.Intents = discordgo.IntentsGuildMessages
 
 	// If there is an error, print it and return.
-
 	if err != nil {
 		panic(err)
 	}
@@ -36,7 +32,6 @@ func main() {
 	session.AddHandler(messageCreate)
 
 	// Connect to the Discord API with the token provided -- Session.Open();
-
 	session.Open()
 
 	/* When bot starts up -- Log to the console */
@@ -55,9 +50,8 @@ func main() {
 }
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	
-	// If the user is the bot, return the function.
 
+	// If the user is the bot, return the function.
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
@@ -76,7 +70,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
 
 				// If image is provided, embed it
-
 				Type:        "rich",
 				Color:       2617723,
 				Image:       &discordgo.MessageEmbedImage{URL: cdnMessage.Attachments[0].URL},
@@ -85,9 +78,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			})
 			s.ChannelMessageDelete(m.ChannelID, m.ID)
 		} else {
-
-			// If it isn't return the statement with an Embed.
-
+			// If it doesn't have an attachment of an image return an error
 			s.ChannelMessageDelete(m.ChannelID, m.ID)
 			message, _ := s.ChannelMessageSend(m.ChannelID, "Please include an image!")
 			time.AfterFunc(5*time.Second, func() { s.ChannelMessageDelete(m.ChannelID, message.ID) })
