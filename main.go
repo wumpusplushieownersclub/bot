@@ -12,8 +12,8 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
-var CDN_CHANNEL_ID = "918725182330400788"
-var PICS_CHANNEL_ID = "918355152493215764"
+var CDN_CHANNEL_ID = getenv("CDN_CHANNEL", "918725182330400788")
+var PICS_CHANNEL_ID = getenv("PICS_CHANNEL", "918355152493215764")
 
 func main() {
 	session, err := discordgo.New("Bot " + os.Getenv("DISCORD_TOKEN"))
