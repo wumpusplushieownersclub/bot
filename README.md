@@ -14,7 +14,7 @@ TEAM_ROLE="918354200482709505"
 
 ## Starting the bot
 
-Run `go run .` (Using . instead of main.go since there is multiple files)
+Run `go run ./src` (Using ./src instead of main.go since there is multiple files in a folder)
 
 If you want reload-on-save you can use [reflex](https://github.com/cespare/reflex)
 
@@ -25,5 +25,5 @@ go install github.com/cespare/reflex@latest
 Then run the bot using
 
 ```sh
-reflex -r '\.go' -s -- sh -c "go run ."
+reflex -r '\.go' -s -- sh -c "go run ./src"
 ```
