@@ -30,6 +30,7 @@ func main() {
 	}
 
 	session.AddHandler(messageCreate)
+	// session.AddHandler(guildMemberAdd)
 
 	// Connect to the Discord API with the token provided -- Session.Open();
 	session.Open()
@@ -48,6 +49,10 @@ func main() {
 
 	session.Close()
 }
+
+// func guildMemberAdd(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
+// 	/* idk man we could probably do something here */
+// }
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
@@ -97,5 +102,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			s.Close()
 			os.Exit(9)
 		}
+
 	}
 }
