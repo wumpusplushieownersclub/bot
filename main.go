@@ -27,6 +27,7 @@ func main() {
 	}
 
 	session.AddHandler(messageCreate)
+	// session.AddHandler(guildMemberAdd)
 
 	session.Open()
 
@@ -44,6 +45,10 @@ func main() {
 
 	session.Close()
 }
+
+// func guildMemberAdd(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
+// 	/* idk man we could probably do something here */
+// }
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Ignore ourselves
@@ -89,5 +94,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			s.Close()
 			os.Exit(9)
 		}
+
 	}
 }
