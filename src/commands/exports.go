@@ -1,8 +1,8 @@
 package commands
 
 import (
-	"encoding/json"
 	"fmt"
+	"wumpus/src/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -31,28 +31,20 @@ var Commands = map[string]*BotCommand{
 	}),
 
 	"count": New("count", func(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
-		guildJson, err := s.RequestWithBucketID("GET", discordgo.EndpointGuild(m.GuildID)+"?with_counts=true", nil, discordgo.EndpointGuild(m.GuildID))
-		guildDiscord := &discordgo.Guild{}
+		s.RequestGuildMembers(m.GuildID, "", 0, false)
+		guildMembers, _ := s.GuildMembers(m.GuildID, "", 1000) // This'll work for <1000 members
 
-		if err == nil {
-			_ = json.Unmarshal(guildJson, guildDiscord)
+		count := 0
+		for _, member := range guildMembers {
+			if utils.Contains(member.Roles, utils.OWNER_ROLE_ID) {
+				count += 1
+			}
 		}
-
-		// Figure out later
-
-		// count := 0
-
-		// for _, member := range guildDiscord.Members {
-		// 	if utils.Contains(member.Roles, utils.OWNER_ROLE_ID) {
-		// 		count += 1
-		// 		s.ChannelMessageSend(m.ChannelID, fmt.Sprint(member))
-		// 	}
-		// }
 
 		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
 			Type:        "rich",
 			Color:       7506394,
-			Description: "**" + fmt.Sprint(guildDiscord.ApproximateMemberCount) + "** Wumpus Plushie owners currently reside in this server",
+			Description: "**" + fmt.Sprint(count) + "** Wumpus Plushie owners currently reside in this server",
 		})
 	}),
 }
