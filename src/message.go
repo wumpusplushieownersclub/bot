@@ -1,15 +1,19 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
+	"wumpus/src/commands"
+
 	"github.com/bwmarrin/discordgo"
 )
+
+// Yes, with the space after it
+var COMMAND_PREFIX = "wump "
 
 func messageReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	if r.MessageReaction.UserID == s.State.User.ID || r.ChannelID != VERIFICATION_CHANNEL_ID {
@@ -101,34 +105,30 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			message, _ := s.ChannelMessageSend(m.ChannelID, "Must include an image to get verified!")
 			time.AfterFunc(5*time.Second, func() { s.ChannelMessageDelete(m.ChannelID, message.ID) })
 		}
+	} else if strings.ToLower(m.Content) == "wump" {
+		s.ChannelMessageSend(m.ChannelID, "<:wumpWave:918629841836859412>")
+	} else if strings.ToLower(m.Content) == "nap" && contains(m.Member.Roles, TEAM_ROLE_ID) {
+		s.ChannelMessageSend(m.ChannelID, "<:wumpSad:918629842050748437> going down for nap time")
+		s.Close()
+		os.Exit(9)
 	} else {
-		if strings.ToLower(m.Content) == "ping" {
-			s.ChannelMessageSend(m.ChannelID, "pong")
+		contentLower := strings.ToLower(m.Content)
+
+		if !strings.HasPrefix(contentLower, COMMAND_PREFIX) {
+			return
 		}
 
-		if strings.ToLower(m.Content) == "wump" {
-			s.ChannelMessageSend(m.ChannelID, "<:wumpWave:918629841836859412>")
+		contentSplit := strings.Split(strings.Replace(m.Content, COMMAND_PREFIX, "", 1), "")
+		commandName := strings.ToLower(contentSplit[0])
+		command := commands.Commands[commandName]
+
+		if command == nil {
+			s.ChannelMessageSend(m.ChannelID, "Unknown command")
+			return
 		}
 
-		if strings.ToLower(m.Content) == "nap" && contains(m.Member.Roles, TEAM_ROLE_ID) {
-			s.ChannelMessageSend(m.ChannelID, "<:wumpSad:918629842050748437> going down for nap time")
-			s.Close()
-			os.Exit(9)
-		}
+		args := contentSplit[1:]
 
-		if strings.ToLower(m.Content) == "wump count" {
-			guildJson, err := s.RequestWithBucketID("GET", discordgo.EndpointGuild(m.GuildID)+"?with_counts=true", nil, discordgo.EndpointGuild(m.GuildID))
-            guildDiscord := &discordgo.Guild{}
-
-            if err == nil {
-				_ = json.Unmarshal(guildJson, guildDiscord)
-			}
-
-			s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
-				Type:        "rich",
-				Color:       7506394,
-				Description: "**" + fmt.Sprint(guildDiscord.ApproximateMemberCount) + "** Wumpus Plushie owners currently reside in this server",
-			})
-		}
+		go command.Run(s, m, args)
 	}
 }
