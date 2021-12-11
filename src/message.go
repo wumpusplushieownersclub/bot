@@ -118,7 +118,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			return
 		}
 
-		contentSplit := strings.Split(strings.Replace(m.Content, COMMAND_PREFIX, "", 1), "")
+		contentSplit := strings.Split(m.Content[len(COMMAND_PREFIX):], " ")
 		commandName := strings.ToLower(contentSplit[0])
 		command := commands.Commands[commandName]
 
