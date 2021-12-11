@@ -105,7 +105,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			message, _ := s.ChannelMessageSend(m.ChannelID, "Must include an image to get verified!")
 			time.AfterFunc(5*time.Second, func() { s.ChannelMessageDelete(m.ChannelID, message.ID) })
 		}
-	} else if strings.ToLower(m.Content) == "wump" {
+	} else if strings.ToLower(m.Content) == "wump" || m.ContentWithMentionsReplaced() == "@Wumpus" && m.Mentions[0].ID == s.State.User.ID {
 		s.ChannelMessageSend(m.ChannelID, "<:wumpWave:918629841836859412>")
 	} else if strings.ToLower(m.Content) == "nap" && contains(m.Member.Roles, TEAM_ROLE_ID) {
 		s.ChannelMessageSend(m.ChannelID, "<:wumpSad:918629842050748437> going down for nap time")
