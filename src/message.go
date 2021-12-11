@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"wumpus/src/commands"
+	"wumpus/src/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -16,13 +17,13 @@ import (
 var COMMAND_PREFIX = "wump "
 
 func messageReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
-	if r.MessageReaction.UserID == s.State.User.ID || r.ChannelID != VERIFICATION_CHANNEL_ID {
+	if r.MessageReaction.UserID == s.State.User.ID || r.ChannelID != utils.VERIFICATION_CHANNEL_ID {
 		return
 	}
 
 	member, _ := s.GuildMember(r.GuildID, r.MessageReaction.UserID)
 
-	if contains(member.Roles, TEAM_ROLE_ID) && contains(VALID_REACTIONS, r.Emoji.Name) {
+	if utils.Contains(member.Roles, utils.TEAM_ROLE_ID) && utils.Contains(utils.VALID_REACTIONS, r.Emoji.Name) {
 		reactedMessage, _ := s.ChannelMessage(r.ChannelID, r.MessageID)
 		channelMessages, _ := s.ChannelMessages(r.ChannelID, 100, r.MessageID, "", "")
 		var originalMessage *discordgo.Message
@@ -46,7 +47,7 @@ func messageReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 		if r.Emoji.Name == "👍" {
 			status = "verified"
 			color = 0x00FF00
-			s.GuildMemberRoleAdd(r.GuildID, reactedMessage.Author.ID, OWNER_ROLE_ID)
+			s.GuildMemberRoleAdd(r.GuildID, reactedMessage.Author.ID, utils.OWNER_ROLE_ID)
 		} else if r.Emoji.Name == "👎" {
 			status = "denied"
 			color = 0xFF0000
@@ -55,7 +56,7 @@ func messageReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 
 		message := fmt.Sprintf("%s#%s was %s by %s", reactedMessage.Author.Username, reactedMessage.Author.Discriminator, status, member.User.Username)
 
-		s.ChannelMessageSendEmbed(LOGS_CHANNEL_ID, &discordgo.MessageEmbed{
+		s.ChannelMessageSendEmbed(utils.LOGS_CHANNEL_ID, &discordgo.MessageEmbed{
 			Type:      "rich",
 			Color:     color,
 			Title:     message,
@@ -72,7 +73,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	if m.ChannelID == PICS_CHANNEL_ID {
+	if m.ChannelID == utils.PICS_CHANNEL_ID {
 		if len(m.Attachments) > 0 && m.Attachments[0].Height != 0 && m.Attachments[0].Width != 0 {
 			image := m.Attachments[0]
 			httpClient := &http.Client{
@@ -80,7 +81,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}
 			request, _ := httpClient.Get(image.URL)
 
-			cdnMessage, _ := s.ChannelFileSend(CDN_CHANNEL_ID, image.Filename, request.Body)
+			cdnMessage, _ := s.ChannelFileSend(utils.CDN_CHANNEL_ID, image.Filename, request.Body)
 
 			s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
 				Type:        "rich",
@@ -96,7 +97,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			message, _ := s.ChannelMessageSend(m.ChannelID, "Please include an image!")
 			time.AfterFunc(5*time.Second, func() { s.ChannelMessageDelete(m.ChannelID, message.ID) })
 		}
-	} else if m.ChannelID == VERIFICATION_CHANNEL_ID {
+	} else if m.ChannelID == utils.VERIFICATION_CHANNEL_ID {
 		if len(m.Attachments) > 0 && m.Attachments[0].Height != 0 && m.Attachments[0].Width != 0 {
 			s.MessageReactionAdd(m.ChannelID, m.ID, "👍")
 			s.MessageReactionAdd(m.ChannelID, m.ID, "👎")
@@ -107,7 +108,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 	} else if strings.ToLower(m.Content) == "wump" || m.ContentWithMentionsReplaced() == "@Wumpus" && m.Mentions[0].ID == s.State.User.ID {
 		s.ChannelMessageSend(m.ChannelID, "<:wumpWave:918629841836859412>")
-	} else if strings.ToLower(m.Content) == "nap" && contains(m.Member.Roles, TEAM_ROLE_ID) {
+	} else if strings.ToLower(m.Content) == "nap" && utils.Contains(m.Member.Roles, utils.TEAM_ROLE_ID) {
 		s.ChannelMessageSend(m.ChannelID, "<:wumpSad:918629842050748437> going down for nap time")
 		s.Close()
 		os.Exit(9)
