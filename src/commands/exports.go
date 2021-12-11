@@ -38,6 +38,17 @@ var Commands = map[string]*BotCommand{
 			_ = json.Unmarshal(guildJson, guildDiscord)
 		}
 
+		// Figure out later
+
+		// count := 0
+
+		// for _, member := range guildDiscord.Members {
+		// 	if utils.Contains(member.Roles, utils.OWNER_ROLE_ID) {
+		// 		count += 1
+		// 		s.ChannelMessageSend(m.ChannelID, fmt.Sprint(member))
+		// 	}
+		// }
+
 		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
 			Type:        "rich",
 			Color:       7506394,
