@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -88,7 +87,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 				Type:        "rich",
 				Color:       2617723,
 				Image:       &discordgo.MessageEmbedImage{URL: cdnMessage.Attachments[0].URL},
-				Author:      &discordgo.MessageEmbedAuthor{IconURL: m.Author.AvatarURL(""), Name: m.Author.Username + "#" + m.Member.User.Discriminator},
+				Author:      &discordgo.MessageEmbedAuthor{IconURL: m.Author.AvatarURL(""), Name: fmt.Sprintf("%s#%s", m.Author.Username, m.Author.Discriminator)},
 				Description: m.Content,
 			})
 
@@ -116,11 +115,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	} else if strings.ToLower(m.Content) == "wump" || m.ContentWithMentionsReplaced() == "@Wumpus" && m.Mentions[0].ID == s.State.User.ID {
 
 		s.ChannelMessageSend(m.ChannelID, "<:wumpWave:918629841836859412>")
-	} else if strings.ToLower(m.Content) == "nap" && utils.Contains(m.Member.Roles, utils.TEAM_ROLE_ID) {
-		s.ChannelMessageSend(m.ChannelID, "<:wumpSad:918629842050748437> going down for nap time")
-		s.Close()
-		os.Exit(9)
-
 	} else {
 
 		contentLower := strings.ToLower(m.Content)
