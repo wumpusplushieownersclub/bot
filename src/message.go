@@ -74,7 +74,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if m.ChannelID == utils.PICS_CHANNEL_ID {
 		if len(m.Attachments) > 0 && m.Attachments[0].Height != 0 && m.Attachments[0].Width != 0 {
-
 			image := m.Attachments[0]
 			httpClient := &http.Client{
 				Timeout: 10 * time.Second,
@@ -92,31 +91,24 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			})
 
 			s.ChannelMessageDelete(m.ChannelID, m.ID)
-
 		} else {
-
 			s.ChannelMessageDelete(m.ChannelID, m.ID)
 			message, _ := s.ChannelMessageSend(m.ChannelID, "Please include an image!")
-			time.AfterFunc(5 * time.Second, func() { s.ChannelMessageDelete(m.ChannelID, message.ID) })
+			time.AfterFunc(5*time.Second, func() { s.ChannelMessageDelete(m.ChannelID, message.ID) })
 		}
 	} else if m.ChannelID == utils.VERIFICATION_CHANNEL_ID {
 		if len(m.Attachments) > 0 && m.Attachments[0].Height != 0 && m.Attachments[0].Width != 0 {
-
 			s.MessageReactionAdd(m.ChannelID, m.ID, "👍")
 			s.MessageReactionAdd(m.ChannelID, m.ID, "👎")
 
 		} else {
-
 			s.ChannelMessageDelete(m.ChannelID, m.ID)
 			message, _ := s.ChannelMessageSend(m.ChannelID, "Must include an image to get verified!")
 			time.AfterFunc(5*time.Second, func() { s.ChannelMessageDelete(m.ChannelID, message.ID) })
 		}
-
 	} else if strings.ToLower(m.Content) == "wump" || m.ContentWithMentionsReplaced() == "@Wumpus" && m.Mentions[0].ID == s.State.User.ID {
-
 		s.ChannelMessageSend(m.ChannelID, "<:wumpWave:918629841836859412>")
 	} else {
-
 		contentLower := strings.ToLower(m.Content)
 
 		if !strings.HasPrefix(contentLower, COMMAND_PREFIX) {
