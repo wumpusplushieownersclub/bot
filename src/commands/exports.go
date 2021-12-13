@@ -154,6 +154,34 @@ var Commands = map[string]*BotCommand{
 		})
 	}),
 
+	"purge": New("purge", "Purge messages in a channel from 2-100", func(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+		if utils.Contains(m.Member.Roles, utils.TEAM_ROLE_ID) {
+			count, _ := strconv.Atoi(args[0])
+
+			if count < 2 || count > 100 {
+				msg, _ := s.ChannelMessageSend(m.ChannelID, "<:wumpSad:918629842050748437> Must include a range between 2-100 to purge messages")
+				time.AfterFunc(3*time.Second, func() {
+					s.ChannelMessageDelete(m.ChannelID, msg.ID)
+				})
+				return
+			}
+
+			channelMessages, _ := s.ChannelMessages(m.ChannelID, count, m.ID, "", "")
+			messages := make([]string, 0)
+			for _, message := range channelMessages {
+				messages = append(messages, message.ID)
+			}
+			s.ChannelMessagesBulkDelete(m.ChannelID, messages)
+			msg, _ := s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Purged **%s** messages", strconv.Itoa(len(messages))))
+			s.ChannelMessageDelete(m.ChannelID, m.ID)
+			time.AfterFunc(5*time.Second, func() {
+				s.ChannelMessageDelete(m.ChannelID, msg.ID)
+			})
+		} else {
+			s.ChannelMessageSend(m.ChannelID, "<:wumpSad:918629842050748437> Only the team can purge messages")
+		}
+	}),
+
 	"info": New("info", "Display user information", func(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
 		lookup := m.Author
 		member := m.Member
