@@ -1,8 +1,13 @@
 package commands
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
+	"time"
+	"wumpus/src/points"
 	"wumpus/src/utils"
 
 	"github.com/bwmarrin/discordgo"
@@ -11,16 +16,16 @@ import (
 type CommandHandler func(s *discordgo.Session, m *discordgo.MessageCreate, args []string)
 
 type BotCommand struct {
-	Name string
+	Name        string
 	Description string
-	Run  CommandHandler
+	Run         CommandHandler
 }
 
 func New(name string, desc string, handler CommandHandler) *BotCommand {
 	return &BotCommand{
-		Name: name,
+		Name:        name,
 		Description: desc,
-		Run:  handler,
+		Run:         handler,
 	}
 }
 
@@ -78,6 +83,37 @@ var Commands = map[string]*BotCommand{
 			s.ChannelMessageSend(m.ChannelID, "<:wumpSad:918629842050748437> going down for nap time")
 			s.Close()
 			os.Exit(9)
+		} else {
+			s.ChannelMessageSend(m.ChannelID, "<:wumpSad:918629842050748437> Only the team can make me nap")
 		}
+	}),
+
+	"balance": New("balance", "Get your WumpusCoin balance", func(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+		httpClient := &http.Client{
+			Timeout: 10 * time.Second,
+		}
+		request, _ := httpClient.Get(fmt.Sprintf("%s/balance/%s", utils.POINTS_WORKER_HOST, m.Author.ID))
+
+		account := &points.PointsAccount{}
+
+		body, readErr := ioutil.ReadAll(request.Body)
+		if readErr != nil {
+			fmt.Println(readErr)
+			fmt.Println("Error reading account body", readErr)
+			return
+		}
+
+		err := json.Unmarshal(body, account)
+		if err != nil {
+			fmt.Println("Error unmarshalling account", err)
+			return
+		}
+
+		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
+			Type:        "rich",
+			Color:       0x7289DA,
+			Description: "You have **" + fmt.Sprint(account.Points) + "** WumpusCoins",
+			Author:      &discordgo.MessageEmbedAuthor{IconURL: m.Author.AvatarURL(""), Name: fmt.Sprintf("%s#%s", m.Author.Username, m.Author.Discriminator)},
+		})
 	}),
 }
