@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 	"wumpus/src/points"
 	"wumpus/src/utils"
@@ -112,7 +113,7 @@ var Commands = map[string]*BotCommand{
 		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
 			Type:        "rich",
 			Color:       0x7289DA,
-			Description: "You have **" + fmt.Sprint(account.Points) + "** WumpCoins",
+			Description: fmt.Sprintf("You have **%s** WumpCoins", strconv.Itoa(int(account.Points))),
 			Author:      &discordgo.MessageEmbedAuthor{IconURL: m.Author.AvatarURL(""), Name: fmt.Sprintf("%s#%s", m.Author.Username, m.Author.Discriminator)},
 		})
 	}),
@@ -142,7 +143,7 @@ var Commands = map[string]*BotCommand{
 
 		for index, account := range board {
 			member, _ := s.GuildMember(m.GuildID, account.User)
-			leadboard += fmt.Sprintf("**%x**. %s#%s : **%x**\n", index+1, member.User.Username, member.User.Discriminator, account.Points)
+			leadboard += fmt.Sprintf("**%x**. %s#%s : **%s**\n", index+1, member.User.Username, member.User.Discriminator, strconv.Itoa(int(account.Points)))
 		}
 
 		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
@@ -173,12 +174,52 @@ var Commands = map[string]*BotCommand{
 
 		joinedTime, _ := member.JoinedAt.Parse()
 
+		httpClient := &http.Client{
+			Timeout: 10 * time.Second,
+		}
+		request, _ := httpClient.Get(fmt.Sprintf("%s/balance/%s", utils.POINTS_WORKER_HOST, lookup.ID))
+
+		account := &points.PointsAccount{}
+
+		body, readErr := ioutil.ReadAll(request.Body)
+		if readErr != nil {
+			fmt.Println(readErr)
+			fmt.Println("Error reading account body", readErr)
+			return
+		}
+
+		err := json.Unmarshal(body, account)
+		if err != nil {
+			fmt.Println("Error unmarshalling account", err)
+			return
+		}
+
+		fields := make([]*discordgo.MessageEmbedField, 0)
+
+		fields = append(fields, &discordgo.MessageEmbedField{
+			Name:   "User ID",
+			Value:  fmt.Sprintf("`%s`", lookup.ID),
+			Inline: false,
+		})
+
+		fields = append(fields, &discordgo.MessageEmbedField{
+			Name:   "Joined At",
+			Value:  fmt.Sprintf("`%s`", joinedTime.Format("01-02-2006 15:04:05")),
+			Inline: false,
+		})
+
+		fields = append(fields, &discordgo.MessageEmbedField{
+			Name:   "WumpCoins",
+			Value:  fmt.Sprintf("**%s**", strconv.Itoa(int(account.Points))),
+			Inline: false,
+		})
+
 		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
-			Type:        "rich",
-			Color:       0x7289DA,
-			Title:       fmt.Sprintf("%s#%s", lookup.Username, lookup.Discriminator),
-			Description: fmt.Sprintf("**User ID**\n`%s`\n\n**Joined At**\n`%s`\n\n", lookup.ID, joinedTime.Format("01-02-2006 15:04:05")),
-			Thumbnail:   &discordgo.MessageEmbedThumbnail{URL: lookup.AvatarURL("512")},
+			Type:      "rich",
+			Color:     0x7289DA,
+			Title:     fmt.Sprintf("%s#%s", lookup.Username, lookup.Discriminator),
+			Thumbnail: &discordgo.MessageEmbedThumbnail{URL: lookup.AvatarURL("512")},
+			Fields:    fields,
 		})
 	}),
 }
