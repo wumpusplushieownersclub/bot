@@ -154,49 +154,31 @@ var Commands = map[string]*BotCommand{
 	}),
 
 	"info": New("info", "Display user information", func(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+		lookup := m.Author
+		member := m.Member
 
 		if len(m.Mentions) > 0 {
-			mentioned := m.Mentions[0]
-			member, _ := s.GuildMember(m.GuildID, mentioned.ID)
-			joinedTime, _ := member.JoinedAt.Parse()
-
-			s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
-				Type:        "rich",
-				Color:       0x7289DA,
-				Title:       fmt.Sprintf("%s#%s", mentioned.Username, mentioned.Discriminator),
-				Description: fmt.Sprintf("**User ID**\n`%s`\n\n**Joined At**\n`%s`\n\n", mentioned.ID, joinedTime.Format("01-02-2006 15:04:05")),
-				Thumbnail: &discordgo.MessageEmbedThumbnail{URL: mentioned.AvatarURL("512")},
-			})
-
+			lookup = m.Mentions[0]
+			member, _ = s.GuildMember(m.GuildID, lookup.ID)
 		} else if len(args) > 0 {
-			member, err := s.GuildMember(m.GuildID, args[0])
+			mem, err := s.GuildMember(m.GuildID, args[0])
+			lookup = mem.User
 
-			if err == nil {
-				mentioned := member.User
-
-				joinedTime, _ := member.JoinedAt.Parse()
-
-				s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
-					Type:        "rich",
-					Color:       0x7289DA,
-					Title:       fmt.Sprintf("%s#%s", mentioned.Username, mentioned.Discriminator),
-					Description: fmt.Sprintf("**User ID**\n`%s`\n\n**Joined At**\n`%s`\n\n", mentioned.ID, joinedTime.Format("01-02-2006 15:04:05")),
-					Thumbnail: &discordgo.MessageEmbedThumbnail{URL: mentioned.AvatarURL("512")},
-				})
-				
-			} else {
+			if err != nil {
 				s.ChannelMessageSend(m.ChannelID, "That user doesn't appear to be in this server... <:wumpSad:918629842050748437>")
+			} else {
+				member = mem
 			}
-		} else {
-			joinedTime, _ := m.Member.JoinedAt.Parse()
-
-			s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
-				Type:        "rich",
-				Color:       0x7289DA,
-				Title:       fmt.Sprintf("%s#%s", m.Author.Username, m.Author.Discriminator),
-				Description: fmt.Sprintf("**User ID**\n`%s`\n\n**Joined At**\n`%s`\n\n", m.Author.ID, joinedTime.Format("01-02-2006 15:04:05")),
-				Thumbnail: &discordgo.MessageEmbedThumbnail{URL: m.Author.AvatarURL("512")},
-			})
 		}
+
+		joinedTime, _ := member.JoinedAt.Parse()
+
+		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
+			Type:        "rich",
+			Color:       0x7289DA,
+			Title:       fmt.Sprintf("%s#%s", lookup.Username, lookup.Discriminator),
+			Description: fmt.Sprintf("**User ID**\n`%s`\n\n**Joined At**\n`%s`\n\n", lookup.ID, joinedTime.Format("01-02-2006 15:04:05")),
+			Thumbnail:   &discordgo.MessageEmbedThumbnail{URL: lookup.AvatarURL("512")},
+		})
 	}),
 }
