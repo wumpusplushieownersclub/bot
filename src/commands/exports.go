@@ -1,10 +1,7 @@
 package commands
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -97,8 +94,8 @@ var Commands = map[string]*BotCommand{
 				Type:        "rich",
 				Color:       0x7289DA,
 				Description: "Failed to get balance from the server",
-				Author:      &discordgo.MessageEmbedAuthor{IconURL: m.Author.AvatarURL(""), Name: fmt.Sprintf("%s#%s", m.Author.Username, m.Author.Discriminator)},
 			})
+			return
 		}
 
 		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
@@ -110,23 +107,14 @@ var Commands = map[string]*BotCommand{
 	}),
 
 	"leaderboard": New("leaderboard", "See top WumpCoin holders", func(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
-		httpClient := &http.Client{
-			Timeout: 10 * time.Second,
-		}
-		request, _ := httpClient.Get(fmt.Sprintf("%s/leaderboard", utils.POINTS_WORKER_HOST))
+		board, err := points.GetLeaderboard()
 
-		board := points.Leaderboard{}
-
-		body, readErr := ioutil.ReadAll(request.Body)
-		if readErr != nil {
-			fmt.Println(readErr)
-			fmt.Println("Error reading leaderboard body", readErr)
-			return
-		}
-
-		err := json.Unmarshal(body, &board)
 		if err != nil {
-			fmt.Println("Error unmarshalling leaderboard", err)
+			s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
+				Type:        "rich",
+				Color:       0x7289DA,
+				Description: "Failed to get leaderboard from the server",
+			})
 			return
 		}
 
