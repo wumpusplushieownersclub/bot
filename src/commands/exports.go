@@ -90,30 +90,21 @@ var Commands = map[string]*BotCommand{
 	}),
 
 	"balance": New("balance", "Get your WumpCoin balance", func(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
-		httpClient := &http.Client{
-			Timeout: 10 * time.Second,
-		}
-		request, _ := httpClient.Get(fmt.Sprintf("%s/balance/%s", utils.POINTS_WORKER_HOST, m.Author.ID))
+		pointsAccount, pointsErr := points.GetPointsAccount(m.Author.ID)
 
-		account := &points.PointsAccount{}
-
-		body, readErr := ioutil.ReadAll(request.Body)
-		if readErr != nil {
-			fmt.Println(readErr)
-			fmt.Println("Error reading account body", readErr)
-			return
-		}
-
-		err := json.Unmarshal(body, account)
-		if err != nil {
-			fmt.Println("Error unmarshalling account", err)
-			return
+		if pointsErr != nil {
+			s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
+				Type:        "rich",
+				Color:       0x7289DA,
+				Description: "Failed to get balance from the server",
+				Author:      &discordgo.MessageEmbedAuthor{IconURL: m.Author.AvatarURL(""), Name: fmt.Sprintf("%s#%s", m.Author.Username, m.Author.Discriminator)},
+			})
 		}
 
 		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
 			Type:        "rich",
 			Color:       0x7289DA,
-			Description: fmt.Sprintf("You have **%s** WumpCoins", strconv.Itoa(int(account.Points))),
+			Description: fmt.Sprintf("You have **%s** WumpCoins", strconv.Itoa(int(pointsAccount.Points))),
 			Author:      &discordgo.MessageEmbedAuthor{IconURL: m.Author.AvatarURL(""), Name: fmt.Sprintf("%s#%s", m.Author.Username, m.Author.Discriminator)},
 		})
 	}),
@@ -202,24 +193,10 @@ var Commands = map[string]*BotCommand{
 
 		joinedTime, _ := member.JoinedAt.Parse()
 
-		httpClient := &http.Client{
-			Timeout: 10 * time.Second,
-		}
-		request, _ := httpClient.Get(fmt.Sprintf("%s/balance/%s", utils.POINTS_WORKER_HOST, lookup.ID))
+		pointsAccount, pointsErr := points.GetPointsAccount(lookup.ID)
 
-		account := &points.PointsAccount{}
-
-		body, readErr := ioutil.ReadAll(request.Body)
-		if readErr != nil {
-			fmt.Println(readErr)
-			fmt.Println("Error reading account body", readErr)
-			return
-		}
-
-		err := json.Unmarshal(body, account)
-		if err != nil {
-			fmt.Println("Error unmarshalling account", err)
-			return
+		if pointsErr != nil {
+			pointsAccount = &points.PointsAccount{User: lookup.ID, Points: 0}
 		}
 
 		fields := make([]*discordgo.MessageEmbedField, 0)
@@ -238,7 +215,7 @@ var Commands = map[string]*BotCommand{
 
 		fields = append(fields, &discordgo.MessageEmbedField{
 			Name:   "WumpCoins",
-			Value:  fmt.Sprintf("**%s**", strconv.Itoa(int(account.Points))),
+			Value:  fmt.Sprintf("**%s**", strconv.Itoa(int(pointsAccount.Points))),
 			Inline: false,
 		})
 
