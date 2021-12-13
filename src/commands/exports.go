@@ -88,7 +88,7 @@ var Commands = map[string]*BotCommand{
 		}
 	}),
 
-	"balance": New("balance", "Get your WumpusCoin balance", func(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+	"balance": New("balance", "Get your WumpCoin balance", func(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
 		httpClient := &http.Client{
 			Timeout: 10 * time.Second,
 		}
@@ -112,12 +112,12 @@ var Commands = map[string]*BotCommand{
 		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
 			Type:        "rich",
 			Color:       0x7289DA,
-			Description: "You have **" + fmt.Sprint(account.Points) + "** WumpusCoins",
+			Description: "You have **" + fmt.Sprint(account.Points) + "** WumpCoins",
 			Author:      &discordgo.MessageEmbedAuthor{IconURL: m.Author.AvatarURL(""), Name: fmt.Sprintf("%s#%s", m.Author.Username, m.Author.Discriminator)},
 		})
 	}),
 
-	"leaderboard": New("leaderboard", "See top WumpusCoin holders", func(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+	"leaderboard": New("leaderboard", "See top WumpCoin holders", func(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
 		httpClient := &http.Client{
 			Timeout: 10 * time.Second,
 		}
@@ -148,7 +148,7 @@ var Commands = map[string]*BotCommand{
 		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
 			Type:        "rich",
 			Color:       0x7289DA,
-			Title:       "WumpusCoin Leaderboard",
+			Title:       "WumpCoin Leaderboard",
 			Description: leadboard,
 		})
 	}),
