@@ -10,5 +10,5 @@ var OWNER_ROLE_ID = getenv("OWNER_ROLE", "918355466894065685")
 
 var VALID_REACTIONS = []string{"👍", "👎"}
 
-var POINTS_WORKER_HOST = getenv("POINTS_WORKER_HOST", "http://127.0.0.1:8787")
+var POINTS_WORKER_HOST = getenv("POINTS_WORKER_HOST", "https://points.wumpus.club")
 var POINTS_WORKER_SECRET = getenv("POINTS_WORKER_SECRET", "provide_in_env")

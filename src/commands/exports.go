@@ -116,4 +116,40 @@ var Commands = map[string]*BotCommand{
 			Author:      &discordgo.MessageEmbedAuthor{IconURL: m.Author.AvatarURL(""), Name: fmt.Sprintf("%s#%s", m.Author.Username, m.Author.Discriminator)},
 		})
 	}),
+
+	"leaderboard": New("leaderboard", "See top WumpusCoin holders", func(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+		httpClient := &http.Client{
+			Timeout: 10 * time.Second,
+		}
+		request, _ := httpClient.Get(fmt.Sprintf("%s/leaderboard", utils.POINTS_WORKER_HOST))
+
+		board := points.Leaderboard{}
+
+		body, readErr := ioutil.ReadAll(request.Body)
+		if readErr != nil {
+			fmt.Println(readErr)
+			fmt.Println("Error reading leaderboard body", readErr)
+			return
+		}
+
+		err := json.Unmarshal(body, &board)
+		if err != nil {
+			fmt.Println("Error unmarshalling leaderboard", err)
+			return
+		}
+
+		leadboard := ""
+
+		for index, account := range board {
+			member, _ := s.GuildMember(m.GuildID, account.User)
+			leadboard += fmt.Sprintf("**%x**. %s#%s : **%x**\n", index+1, member.User.Username, member.User.Discriminator, account.Points)
+		}
+
+		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
+			Type:        "rich",
+			Color:       0x7289DA,
+			Title:       "WumpusCoin Leaderboard",
+			Description: leadboard,
+		})
+	}),
 }
