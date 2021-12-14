@@ -59,15 +59,7 @@ var Commands = map[string]*BotCommand{
 	}),
 
 	"count": New("count", "Return how many Wumpus Plushie owners are in the guild.", func(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
-		s.RequestGuildMembers(m.GuildID, "", 0, false)
-		guildMembers, _ := s.GuildMembers(m.GuildID, "", 1000) // This'll work for <1000 members
-
-		count := 0
-		for _, member := range guildMembers {
-			if utils.Contains(member.Roles, utils.OWNER_ROLE_ID) {
-				count += 1
-			}
-		}
+		count := utils.CountRoleMembers(s, m.GuildID, utils.OWNER_ROLE_ID)
 
 		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
 			Type:        "rich",
