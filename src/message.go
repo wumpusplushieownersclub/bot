@@ -35,13 +35,13 @@ func messageReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 					for _, m := range v.Mentions {
 						if m.ID == reactedMessage.Author.ID {
 							originalMessage = v
+							s.ChannelMessageDelete(r.ChannelID, originalMessage.ID)
 						}
 					}
 				}
 			}
 
 			s.ChannelMessageDelete(r.ChannelID, reactedMessage.ID)
-			s.ChannelMessageDelete(r.ChannelID, originalMessage.ID)
 
 			var status string
 			var color int
