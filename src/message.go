@@ -14,9 +14,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-// Yes, with the space after it
-var COMMAND_PREFIX = "wump "
-
 func messageReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	if r.MessageReaction.UserID == s.State.User.ID {
 		return
@@ -114,7 +111,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	if m.ChannelID == utils.PICS_CHANNEL_ID {
+	if m.ChannelID == utils.PICS_CHANNEL_ID && utils.APP_ENV == "production" {
 		if len(m.Attachments) > 0 && m.Attachments[0].Height != 0 && m.Attachments[0].Width != 0 {
 			image := m.Attachments[0]
 			httpClient := &http.Client{
@@ -141,7 +138,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			message, _ := s.ChannelMessageSend(m.ChannelID, "Please include an image!")
 			time.AfterFunc(5*time.Second, func() { s.ChannelMessageDelete(m.ChannelID, message.ID) })
 		}
-	} else if m.ChannelID == utils.VERIFICATION_CHANNEL_ID {
+	} else if m.ChannelID == utils.VERIFICATION_CHANNEL_ID && utils.APP_ENV == "production" {
 		if len(m.Attachments) > 0 && m.Attachments[0].Height != 0 && m.Attachments[0].Width != 0 {
 			s.MessageReactionAdd(m.ChannelID, m.ID, "👍")
 			s.MessageReactionAdd(m.ChannelID, m.ID, "👎")
@@ -154,24 +151,24 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	if strings.ToLower(m.Content) == "wump" || m.ContentWithMentionsReplaced() == "@Wumpus" && m.Mentions[0].ID == s.State.User.ID {
-		if m.ChannelID == utils.PICS_CHANNEL_ID {
+	if (strings.ToLower(m.Content) == "wump" && utils.APP_ENV == "production") || (m.ContentWithMentionsReplaced() == fmt.Sprintf("@%s", s.State.User.Username) && m.Mentions[0].ID == s.State.User.ID && (utils.APP_ENV == "production" && s.State.User.ID == utils.PROD_BOT_ID)) {
+		if m.ChannelID == utils.PICS_CHANNEL_ID || m.ChannelID == utils.VERIFICATION_CHANNEL_ID {
 			return
 		}
 
 		s.ChannelMessageSend(m.ChannelID, "<:wumpWave:918629841836859412>")
 	} else {
-		if m.ChannelID == utils.PICS_CHANNEL_ID {
+		if m.ChannelID == utils.PICS_CHANNEL_ID || m.ChannelID == utils.VERIFICATION_CHANNEL_ID || (utils.APP_ENV != "production" && utils.PREFIX == utils.DEFAULT_PREFIX) {
 			return
 		}
 
 		contentLower := strings.ToLower(m.Content)
 
-		if !strings.HasPrefix(contentLower, COMMAND_PREFIX) {
+		if !strings.HasPrefix(contentLower, utils.PREFIX) {
 			return
 		}
 
-		contentSplit := strings.Split(m.Content[len(COMMAND_PREFIX):], " ")
+		contentSplit := strings.Split(m.Content[len(utils.PREFIX):], " ")
 		commandName := strings.ToLower(contentSplit[0])
 		command := commands.Commands[commandName]
 
@@ -185,7 +182,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		go command.Run(s, m, args)
 	}
 
-	if utils.POINTS_WORKER_SECRET != "provide_in_env" {
+	if utils.POINTS_WORKER_SECRET != "provide_in_env" && (utils.APP_ENV == "production" || utils.POINTS_WORKER_HOST != utils.DEFAULT_POINTS_WORKER_HOST) {
 		go func() {
 			httpClient := &http.Client{
 				Timeout: 10 * time.Second,

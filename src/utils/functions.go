@@ -1,6 +1,10 @@
 package utils
 
-import "os"
+import (
+	"os"
+
+	_ "github.com/joho/godotenv/autoload"
+)
 
 func getenv(key, fallback string) string {
 	value := os.Getenv(key)

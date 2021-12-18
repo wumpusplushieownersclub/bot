@@ -70,6 +70,11 @@ var Commands = map[string]*BotCommand{
 
 	"nap": New("nap", "bye bye wumpus", func(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
 		if utils.Contains(m.Member.Roles, utils.TEAM_ROLE_ID) {
+			if utils.APP_ENV == "production" {
+				s.ChannelMessage(m.ChannelID, "<:wumpAngry:918630551995432960> How dare you try to make me nap, it's production time baby")
+				return
+			}
+
 			s.ChannelMessageSend(m.ChannelID, "<:wumpSad:918629842050748437> going down for nap time")
 			s.Close()
 			os.Exit(9)

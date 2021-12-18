@@ -1,5 +1,11 @@
 package utils
 
+var PROD_BOT_ID = "918359646828388384"
+var APP_ENV = getenv("BOT_ENV", "dev")
+
+var DEFAULT_PREFIX = "wump "
+var PREFIX = getenv("PREFIX", DEFAULT_PREFIX)
+
 var CDN_CHANNEL_ID = getenv("CDN_CHANNEL", "918725182330400788")
 var PICS_CHANNEL_ID = getenv("PICS_CHANNEL", "918355152493215764")
 var LOGS_CHANNEL_ID = getenv("LOGS_CHANNEL", "918952346975862824")
@@ -10,5 +16,6 @@ var OWNER_ROLE_ID = getenv("OWNER_ROLE", "918355466894065685")
 
 var VALID_REACTIONS = []string{"👍", "👎"}
 
-var POINTS_WORKER_HOST = getenv("POINTS_WORKER_HOST", "https://points.wumpus.club")
+var DEFAULT_POINTS_WORKER_HOST = "https://points.wumpus.club"
+var POINTS_WORKER_HOST = getenv("POINTS_WORKER_HOST", DEFAULT_POINTS_WORKER_HOST)
 var POINTS_WORKER_SECRET = getenv("POINTS_WORKER_SECRET", "provide_in_env")
