@@ -151,7 +151,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	if (strings.ToLower(m.Content) == "wump" && utils.APP_ENV == "production") || (m.ContentWithMentionsReplaced() == fmt.Sprintf("@%s", s.State.User.Username) && m.Mentions[0].ID == s.State.User.ID && (utils.APP_ENV == "production" && s.State.User.ID == utils.PROD_BOT_ID)) {
+	if (strings.ToLower(m.Content) == "wump" && utils.APP_ENV == "production" && s.State.User.ID == utils.PROD_BOT_ID) || (m.ContentWithMentionsReplaced() == fmt.Sprintf("@%s", s.State.User.Username) && m.Mentions[0].ID == s.State.User.ID && utils.APP_ENV == "production") {
 		if m.ChannelID == utils.PICS_CHANNEL_ID || m.ChannelID == utils.VERIFICATION_CHANNEL_ID {
 			return
 		}
