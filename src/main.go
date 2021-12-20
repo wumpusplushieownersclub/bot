@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"wumpus/src/interactions"
 	"wumpus/src/utils"
 
 	"github.com/bwmarrin/discordgo"
@@ -14,7 +15,7 @@ import (
 func main() {
 	session, err := discordgo.New("Bot " + os.Getenv("DISCORD_TOKEN"))
 
-	session.Identify.Intents = discordgo.IntentsGuildMessages | discordgo.IntentsGuildMembers | discordgo.IntentsGuildMessageReactions
+	session.Identify.Intents = discordgo.IntentsGuildMessages | discordgo.IntentsGuildMembers | discordgo.IntentsGuildMessageReactions | discordgo.IntentsGuildIntegrations
 
 	if err != nil {
 		panic(err)
@@ -24,6 +25,9 @@ func main() {
 		session.AddHandler(guildMemberAdd)
 		session.AddHandler(guildMemberUpdate)
 		session.AddHandler(messageReactionAdd)
+
+		// Slash commands
+		session.AddHandler(interactions.InteractionReceived)
 	}
 
 	session.AddHandler(messageCreate)
@@ -31,6 +35,10 @@ func main() {
 	fmt.Printf("Running in %s mode\n", utils.APP_ENV)
 
 	session.Open()
+
+	if utils.APP_ENV == "production" && session.State.User.ID == utils.PROD_BOT_ID {
+		interactions.CreateCommands(session)
+	}
 
 	if session.State.User.ID == utils.PROD_BOT_ID {
 		session.UpdateGameStatus(0, "big wumpus")

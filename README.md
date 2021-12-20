@@ -7,6 +7,8 @@ Needs `DISCORD_TOKEN` environment variable
 Configurable env variables (Value here is the default)
 
 ```env
+GUILD_ID="918354200482709505"
+
 CDN_CHANNEL="918725182330400788"
 PICS_CHANNEL="918355152493215764"
 LOGS_CHANNEL="918952346975862824"
