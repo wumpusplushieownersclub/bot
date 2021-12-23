@@ -30,6 +30,7 @@ func main() {
 		session.AddHandler(interactions.InteractionReceived)
 	}
 
+	session.AddHandler(ReadyEvent)
 	session.AddHandler(messageCreate)
 
 	fmt.Printf("Running in %s mode\n", utils.APP_ENV)
@@ -40,14 +41,6 @@ func main() {
 		interactions.CreateCommands(session)
 	}
 
-	if session.State.User.ID == utils.PROD_BOT_ID {
-		session.UpdateGameStatus(0, "big wumpus")
-	} else {
-		session.UpdateGameStatus(0, "small wumpus")
-	}
-
-	fmt.Println("🚀 Wumpus has launched :D")
-
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, syscall.SIGTERM)
 	<-sc
@@ -55,4 +48,14 @@ func main() {
 	fmt.Println("uh oh D:")
 
 	session.Close()
+}
+
+func ReadyEvent(s *discordgo.Session, r *discordgo.Ready) {
+	fmt.Println("🚀 Wumpus has launched :D")
+
+	if s.State.User.ID == utils.PROD_BOT_ID {
+		s.UpdateGameStatus(0, "big wumpus")
+	} else {
+		s.UpdateGameStatus(0, "small wumpus")
+	}
 }
