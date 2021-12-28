@@ -121,7 +121,17 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			nameSplit := strings.Split(image.Filename, ".")
 			filename := fmt.Sprintf("%s.%s", m.Author.ID, nameSplit[len(nameSplit)-1])
 
-			cdnMessage, _ := s.ChannelFileSend(utils.CDN_CHANNEL_ID, filename, request.Body)
+			cdnMessage, sendErr := s.ChannelFileSend(utils.CDN_CHANNEL_ID, filename, request.Body)
+			if sendErr != nil {
+				fmt.Println("There as an error sending the image to CDN channel", sendErr)
+				errMessage, _ := s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
+					Type:        "rich",
+					Color:       0x7289DA,
+					Description: "Uploaded file was too big for me to process",
+				})
+				time.AfterFunc(5*time.Second, func() { s.ChannelMessageDelete(m.ChannelID, errMessage.ID) })
+				return
+			}
 
 			message, _ := s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
 				Type:        "rich",
