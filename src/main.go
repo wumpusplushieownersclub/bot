@@ -23,6 +23,7 @@ func main() {
 
 	if utils.APP_ENV == "production" {
 		session.AddHandler(guildMemberAdd)
+		session.AddHandler(guildMemberRemove)
 		session.AddHandler(guildMemberUpdate)
 		session.AddHandler(messageReactionAdd)
 
