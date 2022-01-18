@@ -38,6 +38,19 @@ func messageReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 				}
 			}
 
+			image := reactedMessage.Attachments[0]
+			httpClient := &http.Client{
+				Timeout: 10 * time.Second,
+			}
+			request, _ := httpClient.Get(image.URL)
+			nameSplit := strings.Split(image.Filename, ".")
+			filename := fmt.Sprintf("%s.%s", reactedMessage.Author.ID, nameSplit[len(nameSplit)-1])
+
+			cdnMessage, sendErr := s.ChannelFileSend(utils.CDN_CHANNEL_ID, filename, request.Body)
+			if sendErr != nil {
+				fmt.Println("There as an error sending the image to CDN channel", sendErr)
+			}
+
 			s.ChannelMessageDelete(r.ChannelID, reactedMessage.ID)
 
 			var status string
@@ -59,6 +72,7 @@ func messageReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 				Type:      "rich",
 				Color:     color,
 				Title:     message,
+				Image:     &discordgo.MessageEmbedImage{URL: cdnMessage.Attachments[0].URL},
 				Footer:    &discordgo.MessageEmbedFooter{Text: "Wumpus Verification"},
 				Timestamp: time.Now().Format(time.RFC3339),
 			})
