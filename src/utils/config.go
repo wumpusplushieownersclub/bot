@@ -22,3 +22,5 @@ var VALID_REACTIONS = []string{"👍", "👎"}
 var DEFAULT_POINTS_WORKER_HOST = "https://points.wumpus.club"
 var POINTS_WORKER_HOST = getenv("POINTS_WORKER_HOST", DEFAULT_POINTS_WORKER_HOST)
 var POINTS_WORKER_SECRET = getenv("POINTS_WORKER_SECRET", "provide_in_env")
+
+var VIDEO_FORMATS = []string{"mp4", "mov", "mkv", "avi", "wmv", "webm", "flv"}

@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"strings"
+
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -16,4 +18,17 @@ func CountRoleMembers(s *discordgo.Session, guildID string, roleID string) int {
 	}
 
 	return count
+}
+
+func IsVideo(attachment *discordgo.MessageAttachment) bool {
+	nameSplit := strings.Split(attachment.Filename, ".")
+	ext := nameSplit[len(nameSplit)-1]
+
+	for _, t := range VIDEO_FORMATS {
+		if strings.ToLower(ext) == t {
+			return true
+		}
+	}
+
+	return false
 }

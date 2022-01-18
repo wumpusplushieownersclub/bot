@@ -126,7 +126,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if m.ChannelID == utils.PICS_CHANNEL_ID && utils.APP_ENV == "production" {
-		if len(m.Attachments) > 0 && m.Attachments[0].Height != 0 && m.Attachments[0].Width != 0 {
+		if len(m.Attachments) > 0 && m.Attachments[0].Height != 0 && m.Attachments[0].Width != 0 && !utils.IsVideo(m.Attachments[0]) {
 			image := m.Attachments[0]
 			httpClient := &http.Client{
 				Timeout: 10 * time.Second,
