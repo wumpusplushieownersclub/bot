@@ -94,8 +94,14 @@ func messageReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 			// Get the users id from the image file path (we set this so it's trustable)
 			filename := strings.Split(reactedMessage.Embeds[0].Image.URL, "/")
 			splits := strings.Split(filename[len(filename)-1], ".")
-			idsplits := strings.Split(splits[0], "-")
-			originalAuthor, _ := s.GuildMember(r.GuildID, idsplits[0])
+			var authorId string
+			if strings.Contains(splits[0], "-") {
+				idsplits := strings.Split(splits[0], "-")
+				authorId = idsplits[0]
+			} else {
+				authorId = splits[0]
+			}
+			originalAuthor, _ := s.GuildMember(r.GuildID, authorId)
 
 			if originalAuthor.User.ID == member.User.ID {
 				return
