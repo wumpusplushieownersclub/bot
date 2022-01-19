@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"wumpus/src/cdn"
 	"wumpus/src/commands"
 	"wumpus/src/utils"
 
@@ -44,11 +45,13 @@ func messageReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 			}
 			request, _ := httpClient.Get(image.URL)
 			nameSplit := strings.Split(image.Filename, ".")
-			filename := fmt.Sprintf("%s.%s", reactedMessage.Author.ID, nameSplit[len(nameSplit)-1])
 
-			cdnMessage, sendErr := s.ChannelFileSend(utils.CDN_CHANNEL_ID, filename, request.Body)
-			if sendErr != nil {
-				fmt.Println("There as an error sending the image to CDN channel", sendErr)
+			filename := fmt.Sprintf("%s-%s.%s", reactedMessage.Author.ID, reactedMessage.ID, nameSplit[len(nameSplit)-1])
+			mime := utils.EXT_TO_MIME[nameSplit[len(nameSplit)-1]]
+
+			url, uploadErr := cdn.UploadToCdn(request.Body, "verifications", filename, mime)
+			if uploadErr != nil {
+				fmt.Println("There as an error uploading to CDN", uploadErr)
 			}
 
 			s.ChannelMessageDelete(r.ChannelID, reactedMessage.ID)
@@ -72,7 +75,7 @@ func messageReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 				Type:      "rich",
 				Color:     color,
 				Title:     message,
-				Image:     &discordgo.MessageEmbedImage{URL: cdnMessage.Attachments[0].URL},
+				Image:     &discordgo.MessageEmbedImage{URL: url},
 				Footer:    &discordgo.MessageEmbedFooter{Text: "Wumpus Verification"},
 				Timestamp: time.Now().Format(time.RFC3339),
 			})
@@ -133,15 +136,17 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}
 			request, _ := httpClient.Get(image.URL)
 			nameSplit := strings.Split(image.Filename, ".")
-			filename := fmt.Sprintf("%s.%s", m.Author.ID, nameSplit[len(nameSplit)-1])
 
-			cdnMessage, sendErr := s.ChannelFileSend(utils.CDN_CHANNEL_ID, filename, request.Body)
-			if sendErr != nil {
-				fmt.Println("There as an error sending the image to CDN channel", sendErr)
+			filename := fmt.Sprintf("%s-%s.%s", m.Author.ID, m.ID, nameSplit[len(nameSplit)-1])
+			mime := utils.EXT_TO_MIME[nameSplit[len(nameSplit)-1]]
+
+			url, uploadErr := cdn.UploadToCdn(request.Body, "pics", filename, mime)
+			if uploadErr != nil {
+				fmt.Println("There as an error uploading to cdn", uploadErr)
 				errMessage, _ := s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
 					Type:        "rich",
 					Color:       0x7289DA,
-					Description: "Uploaded file was too big for me to process",
+					Description: "Error uploading file to wumpus cdn, report this",
 				})
 				time.AfterFunc(5*time.Second, func() { s.ChannelMessageDelete(m.ChannelID, errMessage.ID) })
 				return
@@ -150,7 +155,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			message, _ := s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
 				Type:        "rich",
 				Color:       2617723,
-				Image:       &discordgo.MessageEmbedImage{URL: cdnMessage.Attachments[0].URL},
+				Image:       &discordgo.MessageEmbedImage{URL: url},
 				Author:      &discordgo.MessageEmbedAuthor{IconURL: m.Author.AvatarURL(""), Name: fmt.Sprintf("%s#%s", m.Author.Username, m.Author.Discriminator)},
 				Description: m.Content,
 			})

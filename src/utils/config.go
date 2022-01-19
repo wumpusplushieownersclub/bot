@@ -23,4 +23,11 @@ var DEFAULT_POINTS_WORKER_HOST = "https://points.wumpus.club"
 var POINTS_WORKER_HOST = getenv("POINTS_WORKER_HOST", DEFAULT_POINTS_WORKER_HOST)
 var POINTS_WORKER_SECRET = getenv("POINTS_WORKER_SECRET", "provide_in_env")
 
+var EXT_TO_MIME = map[string]string{"gif": "image/gif", "png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg", "webp": "image/webp"}
+
 var VIDEO_FORMATS = []string{"mp4", "mov", "mkv", "avi", "wmv", "webm", "flv"}
+
+var CDN_ENDPOINT = getenv("CDN_ENDPOINT", "cdn.wumpus.club")
+var MINIO_ENDPOINT = getenv("MINIO_ENDPOINT", "provide_in_env")
+var MINIO_ACCESS_KEY = getenv("MINIO_ACCESS_KEY", "provide_in_env")
+var MINIO_SECRET_KEY = getenv("MINIO_SECRET_KEY", "provide_in_env")
